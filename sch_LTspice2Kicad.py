@@ -79,8 +79,13 @@ flag_text = []
 flag_X = []
 flag_Y = []
 text_text = []
+text_orient = []
 text_X = []
 text_Y = []
+rectangleX1 = []
+rectangleY1 = []
+rectangleX2 = []
+rectangleY2 = []
 sym_sym = []
 sym_X = []
 sym_Y = []
@@ -115,14 +120,23 @@ for line1 in lines:
 	
 	if re.match(r"^TEXT *", line1) is not None:
 		text_text.append(line1[spc[4]+2:])
+		text_orient.append(line1[spc[2]+1:spc[3]])
 		text_X.append(int(3.125*int(line1[spc[0]:spc[1]])))
 		text_Y.append(int(3.125*int(line1[spc[1]:spc[2]])))
+
+	if re.match(r"^RECTANGLE *", line1) is not None:
+		rectangleX1.append(int(3.125*int(line1[spc[1]:spc[2]])))
+		rectangleY1.append(int(3.125*int(line1[spc[2]:spc[3]])))
+		rectangleX2.append(int(3.125*int(line1[spc[3]:spc[4]])))
+		if len(spc) == 5 :
+			rectangleY2.append(int(3.125*int(line1[spc[4]:])))
+		else :
+			rectangleY2.append(int(3.125*int(line1[spc[4]:spc[5]])))
 
 	if re.match(r"^SYMBOL *", line1) is not None:
 		if sname < sym_i :
 			sym_name.append(sym_sym[sym_i-1])
 			sname = sname+1
-			print("add sname")
 		if svalue < sym_i :
 			sym_value.append(sym_sym[sym_i-1])
 			svalue = svalue+1
@@ -157,29 +171,29 @@ if sspice < sym_i :
 	sspice = sspice+1
 
 # calcul of min and max of X and Y to choose the page size : A4, A3, A2 A1 or A0
-X_max = max(max(sym_X),max(wireX1),max(wireX2),max(text_X))
-X_min = min(min(sym_X),min(wireX1),min(wireX2),min(text_X))
-Y_max = max(max(sym_Y),max(wireY1),max(wireY2),max(text_Y))
-Y_min = min(min(sym_Y),min(wireY1),min(wireY2),min(text_Y))
+X_max = max(max(sym_X),max(wireX1),max(wireX2),max(text_X),max(rectangleX1),max(rectangleX2))
+X_min = min(min(sym_X),min(wireX1),min(wireX2),min(text_X),min(rectangleX1),min(rectangleX2))
+Y_max = max(max(sym_Y),max(wireY1),max(wireY2),max(text_Y),max(rectangleY1),max(rectangleY2))
+Y_min = min(min(sym_Y),min(wireY1),min(wireY2),min(text_Y),min(rectangleY1),min(rectangleY2))
 outfl.write("$Descr A4 11693 8268\n")
-offX = 50 * int((11693/2 - (X_max-X_min)/2)/50) #  grid step assumed = 50
-offY = 50 * int(( (8268-1250)/2 - (Y_max-Y_min)/2)/50) #  grid step assumed = 50 & 1250 is the heigh of the cartridge
+offX = 50 * int((11693/2 - (X_max+X_min)/2)/50) #  grid step assumed = 50
+offY = 50 * int(((8268-1250)/2 - (Y_max+Y_min)/2)/50) #  grid step assumed = 50 & 1250 is the heigh of the cartridge
 if (X_max-X_min) > 10000  or  (Y_max-Y_min) > 7500 :
 	outfl.write("$Descr A3 16535 11693\n")
-	offX = 50 * int((16535/2 - (X_max-X_min)/2)/50) #  grid step assumed = 50
-	offY = 50 * int(((11693-1250)/2 - (Y_max-Y_min)/2)/50) #  grid step assumed = 50
+	offX = 50 * int((16535/2 - (X_max+X_min)/2)/50) #  grid step assumed = 50
+	offY = 50 * int(((11693-1250)/2 - (Y_max+Y_min)/2)/50) #  grid step assumed = 50
 if (X_max-X_min) > 15000  or  (Y_max-Y_min) > 10000 :
 	outfl.write("$Descr A2 23386 16535\n")
-	offX = 50 * int((23386/2 - (X_max-X_min)/2)/50) #  grid step assumed = 50
-	offY = 50 * int(((16535-1250)/2 - (Y_max-Y_min)/2)/50) #  grid step assumed = 50
+	offX = 50 * int((23386/2 - (X_max+X_min)/2)/50) #  grid step assumed = 50
+	offY = 50 * int(((16535-1250)/2 - (Y_max+Y_min)/2)/50) #  grid step assumed = 50
 if (X_max-X_min) > 20000  or  (Y_max-Y_min) > 15000 :
 	outfl.write("$Descr A1 33110 23386\n")
-	offX = 50 * int((33110/2 - (X_max-X_min)/2)/50) #  grid step assumed = 50
-	offY = 50 * int(((23386-1250)/2 - (Y_max-Y_min)/2)/50) #  grid step assumed = 50
+	offX = 50 * int((33110/2 - (X_max+X_min)/2)/50) #  grid step assumed = 50
+	offY = 50 * int(((23386-1250)/2 - (Y_max+Y_min)/2)/50) #  grid step assumed = 50
 if (X_max-X_min) > 30000  or  (Y_max-Y_min) > 20000 :
 	outfl.write("$Descr A0 46811 33110\n")
-	offX = 50 * int((46811/2 - (X_max-X_min)/2)/50) #  grid step assumed = 50
-	offY = 50 * int(((33110-1250)/2 - (Y_max-Y_min)/2)/50) #  grid step assumed = 50
+	offX = 50 * int((46811/2 - (X_max+X_min)/2)/50) #  grid step assumed = 50
+	offY = 50 * int(((33110-1250)/2 - (Y_max+Y_min)/2)/50) #  grid step assumed = 50
 outfl.write("encoding utf-8\nSheet 1 1\nTitle \""+out_file.replace(".sch","")+"\"\nDate \""+time.strftime('%d/%m/%y %H:%M',time.localtime())+"\"\nRev \"1.0\"\nComp \"\"\nComment1 \"Converted from LTspice\"\nComment2 \"\"\nComment3 \"\"\nComment4 \"\"\n$EndDescr\n")
 
 # export each components
@@ -226,7 +240,20 @@ for i in range(0,len(flag_text)):
 
 # export each free text lines
 for i in range(0,len(text_text)):
-	outfl.write("Text Notes "+str(text_X[i]+offX)+" "+str(text_Y[i]+offY+120*text_text[i].count('\\n'))+" 0    60   ~ 0\n"+text_text[i]+"\n")
+	orient_text = 0
+	off_text = 150
+	if text_orient[i]=="Right" : 
+		orient_text = 2
+	if (text_orient[i]=="Top" or text_orient[i]=="Bottom"): 
+		off_text = 0
+	outfl.write("Text Notes "+str(text_X[i]+offX)+" "+str(text_Y[i]+offY+off_text+75*text_text[i].count('\\n'))+" "+str(orient_text)+"   50   ~ 0\n"+text_text[i]+"\n")
+
+# export each free rectangle (no hashed line in Kicad)
+for i in range(0,len(rectangleX1)):
+	outfl.write("Wire Notes Line\n	"+str(rectangleX1[i]+offX)+" "+str(rectangleY1[i]+offY)+" "+str(rectangleX2[i]+offX)+" "+str(rectangleY1[i]+offY)+"\n")
+	outfl.write("Wire Notes Line\n	"+str(rectangleX2[i]+offX)+" "+str(rectangleY1[i]+offY)+" "+str(rectangleX2[i]+offX)+" "+str(rectangleY2[i]+offY)+"\n")
+	outfl.write("Wire Notes Line\n	"+str(rectangleX2[i]+offX)+" "+str(rectangleY2[i]+offY)+" "+str(rectangleX1[i]+offX)+" "+str(rectangleY2[i]+offY)+"\n")
+	outfl.write("Wire Notes Line\n	"+str(rectangleX1[i]+offX)+" "+str(rectangleY2[i]+offY)+" "+str(rectangleX1[i]+offX)+" "+str(rectangleY1[i]+offY)+"\n")
 
 outfl.write("$EndSCHEMATC")
 outfl.close()
